@@ -99,7 +99,7 @@ Velocity / acceleration
 
 Поведенческие паттерны: опционально
 
-🐳 Docker  (ПОКА НЕ ИСПОЛЬЗОВАТЬ )
+🐳 Docker 
 FROM python:3.10
 WORKDIR /app
 COPY . .
@@ -109,8 +109,10 @@ CMD ["uvicorn", "api.fastapi_app:app", "--host", "0.0.0.0", "--port", "8000"]
 
 Запуск:
 
-docker build -t fraud-api .
-docker run -p 8000:8000 fraud-api
+cd fortehackathon_brutal_backend
+
+docker build -t fortehackathon_brutal_backend .
+docker run -p 8000:8000 fortehackathon_brutal_backend
 
 Нужен асинхронный PostgreSQL 
 

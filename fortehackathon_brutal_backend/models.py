@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Float, Integer, String, DateTime
 
-from fortehackathon_brutal_backend.database import Base
+from database import Base
 
 
 class Transaction(Base):

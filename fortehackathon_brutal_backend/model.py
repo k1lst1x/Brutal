@@ -10,8 +10,8 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 import json
 
-from fortehackathon_brutal_backend.config import MODEL_DIR
-from fortehackathon_brutal_backend.dtos import TransactionOutput, TransactionInput, Stats, Models
+from config import MODEL_DIR
+from dtos import TransactionOutput, TransactionInput, Stats, Models
 
 
 class FraudDetectionAPI:

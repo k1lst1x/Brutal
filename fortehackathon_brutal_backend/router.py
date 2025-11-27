@@ -3,9 +3,9 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 from starlette.concurrency import run_in_threadpool
 
-from fortehackathon_brutal_backend.config import MODEL_DIR
-from fortehackathon_brutal_backend.dtos import TransactionInput, TransactionOutput, Stats
-from fortehackathon_brutal_backend.model import FraudDetectionAPI
+from config import MODEL_DIR
+from dtos import TransactionInput, TransactionOutput, Stats
+from model import FraudDetectionAPI
 
 router = APIRouter()
 

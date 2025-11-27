@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fortehackathon_brutal_backend.router import router
+from router import router
 
 app = FastAPI(title="Fraud Detection API")
 

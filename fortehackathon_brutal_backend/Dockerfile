@@ -1,10 +1,10 @@
-FROM python:3.10-slim AS base
+FROM python:3.12-slim AS base
 
-# Prevent Python from writing .pyc files
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+WORKDIR /
 
-WORKDIR /fortehackathon_brutal_backend
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
@@ -14,4 +14,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "fortehackathon_brutal_backend.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
