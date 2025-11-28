@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Brutal Fraud Shield · Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Tailwind через CDN, без сборки и node -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-50">
+    <!-- HEADER -->
+    <header
+      class="border-b border-slate-800 bg-gradient-to-br from-fuchsia-700/40 via-slate-900 to-cyan-700/40"
+    >
+      <div
+        class="max-w-6xl mx-auto px-4 py-6 md:py-8 flex flex-col md:flex-row gap-6 md:items-center"
+      >
+        <div class="flex-1">
+          <div
+            class="inline-flex items-center gap-2 rounded-full bg-slate-900/60 px-3 py-1 text-xs text-slate-200 border border-white/10"
+          >
+            <span
+              class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-400/20 border border-emerald-400/60"
+            >
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            </span>
+            Anti-fraud · Mobile Internet Banking
+          </div>
+          <h1
+            class="mt-3 text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight"
+          >
+            Brutal Fraud Shield <span class="text-emerald-400">v2.0</span>
+          </h1>
+          <p class="mt-2 max-w-xl text-sm md:text-base text-slate-200/90">
+            Ансамбль CatBoost + XGBoost + LightGBM + IsolationForest, временное
+            разбиение и денежные метрики. Этот дашборд показывает, как модель
+            выглядит глазами бизнеса: онлайн-проверка и money impact.
+          </p>
+          <div class="mt-4 flex flex-wrap gap-4 text-xs text-slate-200/80">
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full bg-emerald-400/20"></span>
+              <span
+                >Threshold (CV):
+                <span id="threshVal" class="font-mono">0.183</span></span
+              >
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full bg-cyan-400/20"></span>
+              <span
+                >Features:
+                <span id="featuresCount" class="font-mono">~60</span></span
+              >
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full bg-yellow-400/20"></span>
+              <span
+                >Клиентов в истории:
+                <span id="customersCount" class="font-mono"
+                  >50 000+</span
+                ></span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="md:w-80">
+          <div
+            class="rounded-2xl border border-white/10 bg-slate-950/70 backdrop-blur p-4 shadow-xl shadow-fuchsia-900/40"
+          >
+            <p
+              class="text-xs uppercase tracking-wide text-slate-400 mb-3"
+            >
+              Performance (cross-validation)
+            </p>
+            <div class="grid grid-cols-3 gap-3 text-xs">
+              <div>
+                <p class="text-slate-400">Precision</p>
+                <p id="precVal" class="font-mono text-emerald-400 text-lg">
+                  0.47
+                </p>
+              </div>
+              <div>
+                <p class="text-slate-400">Recall</p>
+                <p id="recVal" class="font-mono text-emerald-400 text-lg">
+                  0.82
+                </p>
+              </div>
+              <div>
+                <p class="text-slate-400">F2</p>
+                <p id="f2Val" class="font-mono text-emerald-400 text-lg">
+                  0.70
+                </p>
+              </div>
+              <div>
+                <p class="text-slate-400">Accuracy</p>
+                <p id="accVal" class="font-mono text-slate-100 text-lg">
+                  0.986
+                </p>
+              </div>
+              <div>
+                <p class="text-slate-400">ROC-AUC</p>
+                <p id="aucVal" class="font-mono text-slate-100 text-lg">
+                  0.988
+                </p>
+              </div>
+              <div>
+                <p class="text-slate-400 text-[0.7rem]">Latency (demo)</p>
+                <p id="latVal" class="font-mono text-cyan-300 text-lg">
+                  0 ms
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="max-w-6xl mx-auto px-4 py-6 space-y-8">
+      <!-- Критерии -->
+      <section class="grid gap-4 md:grid-cols-3">
+        <!-- Performance -->
+        <div
+          class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex flex-col gap-3"
+        >
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center"
+            >
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+            </div>
+            <div>
+              <p
+                class="text-xs uppercase tracking-wide text-slate-400"
+              >
+                Performance
+              </p>
+              <p class="font-medium text-sm">
+                Качество и скорость модели
+              </p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300">
+            Временное разбиение по транзакциям, оптимизация F2 через Optuna,
+            ансамбль CatBoost + XGBoost + LightGBM + IsolationForest. Все
+            поведенческие фичи и графовые признаки считаются онлайн из истории
+            клиента.
+          </p>
+          <!-- Примитивные бары -->
+          <div class="space-y-2 text-[0.75rem]">
+            <div>
+              <div class="flex justify-between">
+                <span>Precision</span>
+                <span id="bar-precision-label">0.47</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full mt-1">
+                <div
+                  id="bar-precision"
+                  class="h-2 rounded-full bg-emerald-400"
+                ></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between">
+                <span>Recall</span>
+                <span id="bar-recall-label">0.82</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full mt-1">
+                <div
+                  id="bar-recall"
+                  class="h-2 rounded-full bg-emerald-400"
+                ></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between">
+                <span>F2</span>
+                <span id="bar-f2-label">0.70</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full mt-1">
+                <div
+                  id="bar-f2"
+                  class="h-2 rounded-full bg-emerald-400"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Business impact -->
+        <div
+          class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex flex-col gap-3"
+        >
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center"
+            >
+              <span class="w-3 h-3 rounded-full bg-cyan-400"></span>
+            </div>
+            <div>
+              <p
+                class="text-xs uppercase tracking-wide text-slate-400"
+              >
+                Business impact
+              </p>
+              <p class="font-medium text-sm">
+                Деньги, которые защищает модель
+              </p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300">
+            На исторических данных модель:
+          </p>
+          <ul class="text-xs text-slate-300 space-y-1">
+            <li>
+              • сохраняет ~
+              <span id="moneySaved" class="font-semibold"></span> фродовых
+              сумм,
+            </li>
+            <li>
+              • блокирует сомнительные операции на ~
+              <span id="moneyBlocked" class="font-semibold"></span>,
+            </li>
+            <li>
+              • оставляет риск непойманного фрода на уровне
+              <span id="moneyLost" class="font-semibold"></span>.
+            </li>
+          </ul>
+          <div class="mt-3 space-y-1 text-[0.75rem]">
+            <div class="flex justify-between">
+              <span>Saved</span>
+              <span id="bar-saved-label"></span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full">
+              <div
+                id="bar-saved"
+                class="h-2 rounded-full bg-emerald-400"
+              ></div>
+            </div>
+            <div class="flex justify-between">
+              <span>Blocked</span>
+              <span id="bar-blocked-label"></span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full">
+              <div
+                id="bar-blocked"
+                class="h-2 rounded-full bg-yellow-400"
+              ></div>
+            </div>
+            <div class="flex justify-between">
+              <span>Lost</span>
+              <span id="bar-lost-label"></span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full">
+              <div
+                id="bar-lost"
+                class="h-2 rounded-full bg-red-500"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Usability -->
+        <div
+          class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex flex-col gap-3"
+        >
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/40 flex items-center justify-center"
+            >
+              <span class="w-3 h-3 rounded-full bg-fuchsia-400"></span>
+            </div>
+            <div>
+              <p
+                class="text-xs uppercase tracking-wide text-slate-400"
+              >
+                Usability
+              </p>
+              <p class="font-medium text-sm">
+                Интерфейс и объясняемость
+              </p>
+            </div>
+          </div>
+          <ul class="text-xs text-slate-300 space-y-1">
+            <li>• Онлайн-проверка одной транзакции.</li>
+            <li>
+              • Список business-алертов (спайк суммы, ночная активность, быстрые
+              повторы на один и тот же direction).
+            </li>
+            <li>• Денежные метрики понятны бизнесу и аналитикам.</li>
+            <li>
+              • Легко расширить до batch-скоринга CSV и подключить в
+              production-API.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ONLINE DEMO -->
+      <section class="grid gap-4 md:grid-cols-2">
+        <!-- Форма -->
+        <div
+          class="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 flex flex-col gap-3"
+        >
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center"
+            >
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+            </div>
+          </div>
+          <div>
+            <p
+              class="text-xs uppercase tracking-wide text-slate-400"
+            >
+              Real-time scoring
+            </p>
+            <p class="font-medium text-sm">
+              Онлайн проверка одной транзакции (демо-логика)
+            </p>
+          </div>
+
+          <form id="tx-form" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="text-[0.75rem] text-slate-300">
+                  cst_dim_id (user_id)
+                </label>
+                <input
+                  type="number"
+                  id="input-cst"
+                  class="rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-emerald-500/70"
+                  value="100001"
+                />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[0.75rem] text-slate-300">
+                  Amount (KZT)
+                </label>
+                <input
+                  type="number"
+                  id="input-amount"
+                  class="rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-emerald-500/70"
+                  value="50000"
+                />
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-[0.75rem] text-slate-300">
+                Direction (hash получателя / счёта)
+              </label>
+              <input
+                type="text"
+                id="input-direction"
+                class="rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-emerald-500/70"
+                value="hash_1234567890"
+              />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-[0.75rem] text-slate-300">
+                transdatetime (ISO)
+              </label>
+              <input
+                type="text"
+                id="input-datetime"
+                class="rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-sm font-mono text-[0.7rem] outline-none focus:ring-2 focus:ring-emerald-500/70"
+              />
+              <div class="flex gap-3 mt-1">
+                <button
+                  type="button"
+                  id="btn-now"
+                  class="text-[0.7rem] text-emerald-400 hover:text-emerald-300"
+                >
+                  Сейчас
+                </button>
+                <button
+                  type="button"
+                  id="btn-highrisk"
+                  class="text-[0.7rem] text-fuchsia-300 hover:text-fuchsia-200"
+                >
+                  Тестовый high-risk кейс
+                </button>
+              </div>
+            </div>
+
+            <p
+              id="form-error"
+              class="text-xs text-red-400 hidden"
+            ></p>
+
+            <button
+              type="submit"
+              class="mt-2 inline-flex items-center justify-center rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-medium text-slate-950 hover:bg-emerald-400"
+            >
+              Проверить транзакцию
+            </button>
+          </form>
+
+          <p class="mt-2 text-[0.7rem] text-slate-400">
+            В боевом API в запрос отправляются только сырые поля:
+            <span class="font-mono"
+              >cst_dim_id, transdatetime, amount, direction</span
+            >. Все сложные фичи считаются на бэке.
+          </p>
+        </div>
+
+        <!-- Результат -->
+        <div
+          class="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 flex flex-col gap-3"
+        >
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center"
+            >
+              <span class="w-3 h-3 rounded-full bg-cyan-400"></span>
+            </div>
+            <div>
+              <p
+                class="text-xs uppercase tracking-wide text-slate-400"
+              >
+                Online результат
+              </p>
+              <p class="font-medium text-sm">
+                Вероятность фрода и объяснения (demo)
+              </p>
+            </div>
+          </div>
+
+          <div id="result-empty" class="text-xs text-slate-400">
+            Заполни форму слева и запусти проверку — здесь появится карта
+            риска и объяснения, похожие на то, что вернёт настоящий бэк.
+          </div>
+
+          <div id="result-card" class="hidden space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs text-slate-400">
+                  Fraud probability
+                </p>
+                <p id="result-prob" class="text-2xl font-semibold">
+                  0.0%
+                </p>
+                <span
+                  id="result-badge"
+                  class="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[0.7rem]"
+                >
+                  low
+                </span>
+              </div>
+              <div class="text-xs text-right text-slate-300">
+                <p>
+                  Latency:
+                  <span id="result-latency" class="font-mono"
+                    >0 ms</span
+                  >
+                </p>
+                <p>
+                  Threshold:
+                  <span id="result-threshold" class="font-mono"
+                    >0.183</span
+                  >
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <p
+                class="text-xs font-semibold text-slate-300 mb-1"
+              >
+                Alerts (объяснения):
+              </p>
+              <ul
+                id="result-alerts"
+                class="text-xs text-slate-300 list-disc pl-4 space-y-1"
+              ></ul>
+            </div>
+
+            <div class="mt-3 border-t border-slate-800 pt-2">
+              <p
+                class="text-[0.7rem] text-slate-400 mb-1"
+              >
+                История демо-запросов
+              </p>
+              <div
+                id="history-list"
+                class="h-20 overflow-y-auto pr-1 text-[0.7rem] space-y-1"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Feature importance (статичный список) -->
+      <section
+        class="rounded-2xl border border-slate-800 bg-slate-900/80 p-4"
+      >
+        <div class="flex items-center gap-2 mb-3">
+          <div
+            class="w-8 h-8 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/40 flex items-center justify-center"
+          >
+            <span class="w-3 h-3 rounded-full bg-fuchsia-400"></span>
+          </div>
+          <div>
+            <p
+              class="text-xs uppercase tracking-wide text-slate-400"
+            >
+              Feature importance
+            </p>
+            <p class="font-medium text-sm">
+              Топ признаков по суммарной важности (XGB + LGB)
+            </p>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-3 text-xs text-slate-200">
+          <ul class="space-y-1">
+            <li>1. amount</li>
+            <li>2. pair_count</li>
+            <li>3. days_since_first</li>
+            <li>4. direction</li>
+            <li>5. hour</li>
+            <li>6. month</li>
+            <li>7. amount_ratio_avg30</li>
+            <li>8. std_amount_7d</li>
+          </ul>
+          <ul class="space-y-1">
+            <li>9. cst_dim_id</li>
+            <li>10. amount_ratio_avg7</li>
+            <li>11. amount_to_max_ratio</li>
+            <li>12. num_trans_last_30d</li>
+            <li>13. velocity_acceleration</li>
+            <li>14. dayofweek</li>
+            <li>15. time_since_last_hours</li>
+          </ul>
+        </div>
+        <p class="mt-2 text-[0.7rem] text-slate-400">
+          На презентации можно показать, как при разных типах фрода меняются
+          важности фичей: спайк по amount, аномальный direction, ночные переводы
+          и быстрые повторы.
+        </p>
+      </section>
+    </main>
+
+    <!-- JS-логика (demo-скоринг на фронте) -->
+    <script>
+      // offline-метрики из твоего ноута
+      const metrics = {
+        precision: 0.4714,
+        recall: 0.8195,
+        f2: 0.7006,
+        accuracy: 0.9857,
+        roc_auc: 0.9883,
+        threshold: 0.183,
+        money_lost: 4463546.67,
+        money_blocked: 55746813.08,
+        money_saved: 32830802.67,
+      };
+
+      function formatMoneyKZT(v) {
+        try {
+          return new Intl.NumberFormat("ru-RU", {
+            style: "currency",
+            currency: "KZT",
+            maximumFractionDigits: 0,
+          }).format(v);
+        } catch {
+          return v.toLocaleString("ru-RU") + " ₸";
+        }
+      }
+
+      const history = [];
+
+      document.addEventListener("DOMContentLoaded", () => {
+        // заполнить header-метрики
+        document.getElementById("precVal").textContent =
+          metrics.precision.toFixed(2);
+        document.getElementById("recVal").textContent =
+          metrics.recall.toFixed(2);
+        document.getElementById("f2Val").textContent =
+          metrics.f2.toFixed(2);
+        document.getElementById("accVal").textContent =
+          metrics.accuracy.toFixed(3);
+        document.getElementById("aucVal").textContent =
+          metrics.roc_auc.toFixed(3);
+        document.getElementById("threshVal").textContent =
+          metrics.threshold.toFixed(3);
+
+        // бары performance
+        const setBar = (id, labelId, value) => {
+          const bar = document.getElementById(id);
+          const lbl = document.getElementById(labelId);
+          if (bar) bar.style.width = value * 100 + "%";
+          if (lbl) lbl.textContent = value.toFixed(2);
+        };
+        setBar("bar-precision", "bar-precision-label", metrics.precision);
+        setBar("bar-recall", "bar-recall-label", metrics.recall);
+        setBar("bar-f2", "bar-f2-label", metrics.f2);
+
+        // деньги
+        document.getElementById("moneySaved").textContent =
+          formatMoneyKZT(metrics.money_saved);
+        document.getElementById("moneyBlocked").textContent =
+          formatMoneyKZT(metrics.money_blocked);
+        document.getElementById("moneyLost").textContent =
+          formatMoneyKZT(metrics.money_lost);
+
+        const total =
+          metrics.money_saved +
+          metrics.money_blocked +
+          metrics.money_lost;
+        const savedRatio = metrics.money_saved / total;
+        const blockedRatio = metrics.money_blocked / total;
+        const lostRatio = metrics.money_lost / total;
+
+        const barSaved = document.getElementById("bar-saved");
+        const barBlocked = document.getElementById("bar-blocked");
+        const barLost = document.getElementById("bar-lost");
+        const lblSaved = document.getElementById("bar-saved-label");
+        const lblBlocked = document.getElementById("bar-blocked-label");
+        const lblLost = document.getElementById("bar-lost-label");
+
+        barSaved.style.width = savedRatio * 100 + "%";
+        barBlocked.style.width = blockedRatio * 100 + "%";
+        barLost.style.width = lostRatio * 100 + "%";
+
+        lblSaved.textContent = (savedRatio * 100).toFixed(1) + "%";
+        lblBlocked.textContent = (blockedRatio * 100).toFixed(1) + "%";
+        lblLost.textContent = (lostRatio * 100).toFixed(1) + "%";
+
+        // datetime по умолчанию
+        const dtInput = document.getElementById("input-datetime");
+        dtInput.value = new Date().toISOString().slice(0, 19);
+
+        document.getElementById("btn-now").addEventListener("click", () => {
+          dtInput.value = new Date().toISOString().slice(0, 19);
+        });
+
+        document
+          .getElementById("btn-highrisk")
+          .addEventListener("click", () => {
+            document.getElementById("input-cst").value = 999999;
+            document.getElementById("input-amount").value = 2000000;
+            document.getElementById("input-direction").value =
+              "hash_suspicious_receiver_01";
+            dtInput.value = new Date().toISOString().slice(0, 19);
+          });
+
+        // форма
+        const form = document.getElementById("tx-form");
+        const errorEl = document.getElementById("form-error");
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          errorEl.classList.add("hidden");
+          errorEl.textContent = "";
+
+          const cst = Number(
+            document.getElementById("input-cst").value
+          );
+          const amount = Number(
+            document.getElementById("input-amount").value
+          );
+          const direction =
+            document.getElementById("input-direction").value || "";
+          const dtStr = dtInput.value;
+
+          if (!cst || !amount || !dtStr) {
+            errorEl.textContent = "Заполни все обязательные поля.";
+            errorEl.classList.remove("hidden");
+            return;
+          }
+
+          // demo-скоринг (заглушка вместо бэка)
+          const start = performance.now();
+          const score = demoScore(amount, direction, dtStr);
+          const latency = performance.now() - start;
+
+          updateResult(score, latency, { cst, amount, direction, dtStr });
+        });
+      });
+
+      function demoScore(amount, direction, dtStr) {
+        // Простая "псевдомодель" для демо:
+        // базовая вероятность растёт с логарифмом суммы
+        let base = Math.min(
+          0.99,
+          0.05 + Math.log10(Math.max(amount, 1)) * 0.15
+        );
+
+        // если hash "подозрительный"
+        if (direction.toLowerCase().includes("suspicious")) {
+          base += 0.2;
+        }
+
+        // ночные переводы усиливают риск
+        const dt = new Date(dtStr);
+        if (!isNaN(dt)) {
+          const h = dt.getHours();
+          if (h >= 23 || h <= 5) base += 0.15;
+        }
+
+        // чуть рандома
+        base += (Math.random() - 0.5) * 0.05;
+
+        return Math.max(0, Math.min(1, base));
+      }
+
+      function updateResult(score, latencyMs, meta) {
+        const resultEmpty = document.getElementById("result-empty");
+        const resultCard = document.getElementById("result-card");
+        const probEl = document.getElementById("result-prob");
+        const badge = document.getElementById("result-badge");
+        const latEl = document.getElementById("result-latency");
+        const thrEl = document.getElementById("result-threshold");
+        const alertsEl = document.getElementById("result-alerts");
+        const histEl = document.getElementById("history-list");
+
+        resultEmpty.classList.add("hidden");
+        resultCard.classList.remove("hidden");
+
+        const probPercent = (score * 100).toFixed(1);
+        probEl.textContent = probPercent + "%";
+        latEl.textContent = latencyMs.toFixed(1) + " ms";
+        thrEl.textContent = metrics.threshold.toFixed(3);
+
+        let risk = "low";
+        let riskClass =
+          "mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[0.7rem] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        if (score >= 0.8) {
+          risk = "high";
+          riskClass =
+            "mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[0.7rem] bg-red-500/20 text-red-200 border border-red-500/40";
+        } else if (score >= 0.4) {
+          risk = "medium";
+          riskClass =
+            "mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[0.7rem] bg-yellow-400/20 text-yellow-200 border border-yellow-400/40";
+        }
+        badge.textContent = risk + " risk";
+        badge.className = riskClass;
+
+        // alerts
+        const alerts = [];
+        if (meta.amount > 1_000_000) {
+          alerts.push("Спайк суммы относительно среднего профиля клиента.");
+        }
+        if (meta.direction.toLowerCase().includes("suspicious")) {
+          alerts.push(
+            "Новый или подозрительный получатель (direction hash)."
+          );
+        }
+        const dt = new Date(meta.dtStr);
+        if (!isNaN(dt)) {
+          const h = dt.getHours();
+          if (h >= 23 || h <= 5) {
+            alerts.push("Ночная активность (23:00–05:00).");
+          }
+        }
+        if (alerts.length === 0) {
+          alerts.push(
+            "Модель не обнаружила ярко выраженных аномалий; решение основано на общем профиле клиента."
+          );
+        }
+
+        alertsEl.innerHTML = "";
+        alerts.forEach((a) => {
+          const li = document.createElement("li");
+          li.textContent = a;
+          alertsEl.appendChild(li);
+        });
+
+        // история
+        history.unshift({
+          prob: probPercent,
+          risk,
+          latency: latencyMs,
+        });
+        if (history.length > 20) history.pop();
+
+        histEl.innerHTML = "";
+        history.forEach((h) => {
+          const row = document.createElement("div");
+          row.className =
+            "flex items-center justify-between text-slate-300";
+          const p = document.createElement("span");
+          p.className = "font-mono";
+          p.textContent = h.prob + "%";
+          const r = document.createElement("span");
+          r.className =
+            h.risk === "high"
+              ? "text-red-300"
+              : h.risk === "medium"
+              ? "text-yellow-300"
+              : "text-emerald-300";
+          r.textContent = h.risk;
+          const l = document.createElement("span");
+          l.className = "text-slate-500";
+          l.textContent = h.latency.toFixed(1) + " ms";
+          row.appendChild(p);
+          row.appendChild(r);
+          row.appendChild(l);
+          histEl.appendChild(row);
+        });
+
+        // демо: среднюю латентность выводим наверху
+        const avgLatency =
+          history.reduce((s, x) => s + x.latency, 0) / history.length || 0;
+        document.getElementById("latVal").textContent =
+          avgLatency.toFixed(1) + " ms";
+      }
+
+      // ❗ Когда будешь готов коннектить реальный бэк:
+      // вместо demoScore() можно вызвать fetch("http://localhost:8000/predict", {...})
+      // и подставить реальные данные из ответа.
+    </script>
+  </body>
+</html>
