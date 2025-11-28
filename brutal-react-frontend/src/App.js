@@ -186,6 +186,11 @@ function App() {
 
       const data = await res.json();
 
+      // забираем SHAP top_features из бэка
+      const topFeatures = Array.isArray(data.top_features)
+        ? data.top_features
+        : [];
+
       const prob =
         typeof data.fraud_probability === "number"
           ? data.fraud_probability
@@ -236,6 +241,8 @@ function App() {
         model_version: data.model_version || "2.0_optuna",
         individual_scores: data.individual_scores || null,
         alerts,
+        // 👉 SHAP топ фичей для этой транзакции
+        topFeatures,
       };
 
       setResult(newResult);
@@ -713,11 +720,11 @@ function App() {
                     <ul className="alerts">
                       <li>
                         CatBoost:{" "}
-                        <span className="mono">
-                          {result.individual_scores.catboost?.toFixed(
-                            3
-                          ) ?? "—"}
-                        </span>
+                          <span className="mono">
+                            {result.individual_scores.catboost?.toFixed(
+                              3
+                            ) ?? "—"}
+                          </span>
                       </li>
                       <li>
                         XGBoost:{" "}
@@ -755,6 +762,73 @@ function App() {
                     ))}
                   </ul>
                 </div>
+
+                {/* SHAP top features для этой транзакции */}
+                {result.topFeatures && result.topFeatures.length > 0 && (
+                  <div className="shap-block">
+                    <p className="card-label">
+                      Top features (SHAP по этой транзакции)
+                    </p>
+                    <ul className="shap-list">
+                      {result.topFeatures.map((f, idx) => {
+                        const name =
+                          f.feature_name ||
+                          f.name ||
+                          f.feature ||
+                          `feature_${idx + 1}`;
+
+                        const rawVal =
+                          typeof f.shap_value === "number"
+                            ? f.shap_value
+                            : typeof f.value === "number"
+                            ? f.value
+                            : 0;
+
+                        const magnitude = Math.min(
+                          Math.abs(rawVal),
+                          1
+                        ); // нормализуем 0–1
+                        const isPositive = rawVal >= 0;
+
+                        return (
+                          <li key={idx} className="shap-row">
+                            <div className="shap-row-header">
+                              <span className="shap-name">
+                                {name}
+                              </span>
+                              <span
+                                className={
+                                  "shap-value " +
+                                  (isPositive
+                                    ? "shap-value-pos"
+                                    : "shap-value-neg")
+                                }
+                              >
+                                {rawVal.toFixed(3)}
+                              </span>
+                            </div>
+                            <div className="bar-track">
+                              <div
+                                className={
+                                  "bar-fill " +
+                                  (isPositive
+                                    ? "bar-red"
+                                    : "bar-green")
+                                }
+                                style={{
+                                  width: `${magnitude * 100}%`,
+                                }}
+                              />
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <p className="hint">
+                      Красные фичи ↑ повышают риск, зелёные ↓ снижают.
+                    </p>
+                  </div>
+                )}
 
                 <div className="history">
                   <p className="history-title">
@@ -844,7 +918,7 @@ function App() {
           </div>
         </section>
 
-        {/* Feature importance */}
+        {/* Feature importance (глобальная, CV) */}
         <section className="card" style={{ marginTop: 16 }}>
           <div className="card-header">
             <div className="icon icon-fuchsia" />
@@ -924,3 +998,4 @@ function MoneyBar({ label, value, colorClass }) {
 }
 
 export default App;
+  

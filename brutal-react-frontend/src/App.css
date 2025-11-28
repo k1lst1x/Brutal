@@ -570,3 +570,82 @@ body {
   font-size: 11px;
   color: #9ca3af;
 }
+/* ========== SHAP per-transaction block ========== */
+
+.shap-block {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.shap-list {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shap-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shap-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.shap-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shap-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+
+.shap-value-pos {
+  color: #fecaca; /* красный — увеличивает риск */
+}
+
+.shap-value-neg {
+  color: #bbf7d0; /* зелёный — снижает риск */
+}
+
+/* чуть подправим bar-track / bar-fill если нужно */
+
+.bar-track {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease-out;
+}
+
+.bar-green {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.bar-red {
+  background: linear-gradient(90deg, #ef4444, #f97373);
+}
+
+/* (если у тебя уже есть bar-track/bar-fill/bar-green/bar-red — этот кусок можно не дублировать или чуть подправить под себя) */
